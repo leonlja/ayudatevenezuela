@@ -9,7 +9,7 @@ const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 export default function MapaPage() {
   const [reports, setReports] = useState<PublicReport[]>([]);
-  const [view, setView] = useState<"list" | "map">("list");
+  const [view, setView] = useState<"list" | "map">("map");
 
   const loadReports = async () => {
     const response = await fetch("/api/reports");

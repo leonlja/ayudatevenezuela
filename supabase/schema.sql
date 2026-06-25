@@ -10,7 +10,7 @@ create table if not exists reports (
   lng double precision,
   lat_exact double precision,
   lng_exact double precision,
-  category text not null check (category in ('medica','rescate','agua_comida','refugio','insumos','otro')),
+  category text not null,
   urgency text not null check (urgency in ('critica','alta','media','baja')),
   people_count integer not null default 1 check (people_count > 0),
   description text not null,

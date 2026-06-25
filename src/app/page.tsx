@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-extrabold text-[#FFD100]">Ayuda Venezuela</h1>
+      <h1 className="text-3xl font-extrabold text-[#FFD100]">Ayúdate Venezuela</h1>
       <p className="rounded border border-slate-700 bg-slate-900 p-4">
         Dos terremotos (M7.2 y M7.5) afectaron Venezuela. Esta plataforma conecta reportes de afectados con
         voluntarios y centros de acopio.

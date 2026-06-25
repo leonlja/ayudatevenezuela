@@ -97,13 +97,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
 
-  const category = body.category || "otro";
+  const rawCategory = body.category || "otro";
+  const categories = typeof rawCategory === "string" ? rawCategory.split(",").map((c: string) => c.trim()).filter(Boolean) : [rawCategory];
   const urgency = body.urgency || "media";
   const zone = body.zone || "Otro";
 
-  if (!VALID_CATEGORIES.has(category)) {
+  if (categories.length === 0 || categories.length > 3 || !categories.every((c: string) => VALID_CATEGORIES.has(c))) {
     return NextResponse.json({ error: "Categoria invalida" }, { status: 400 });
   }
+  const category = categories.join(",");
   if (!VALID_URGENCIES.has(urgency)) {
     return NextResponse.json({ error: "Urgencia invalida" }, { status: 400 });
   }

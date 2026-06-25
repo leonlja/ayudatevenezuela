@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
-  title: "Ayuda Venezuela",
+  title: "Ayúdate Venezuela",
   description: "Reportes de crisis tras terremoto en Venezuela",
   manifest: "/manifest.json",
   icons: {

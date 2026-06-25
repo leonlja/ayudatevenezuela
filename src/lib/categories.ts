@@ -20,10 +20,10 @@ export const CATEGORIES = [
 ] as const;
 
 export const URGENCIES = [
-  { value: "critica", label: "Critica", className: "bg-red-700 text-white" },
-  { value: "alta", label: "Alta", className: "bg-orange-500 text-black" },
-  { value: "media", label: "Media", className: "bg-yellow-400 text-black" },
-  { value: "baja", label: "Baja", className: "bg-green-600 text-white" },
+  { value: "critica", label: "Critica", className: "bg-red-700 text-white", classNameInactive: "bg-red-700/30 text-red-300 border border-red-700/50" },
+  { value: "alta", label: "Alta", className: "bg-orange-500 text-black", classNameInactive: "bg-orange-500/30 text-orange-300 border border-orange-500/50" },
+  { value: "media", label: "Media", className: "bg-yellow-400 text-black", classNameInactive: "bg-yellow-400/30 text-yellow-300 border border-yellow-400/50" },
+  { value: "baja", label: "Baja", className: "bg-green-600 text-white", classNameInactive: "bg-green-600/30 text-green-300 border border-green-600/50" },
 ] as const;
 
 export const STATUSES = [

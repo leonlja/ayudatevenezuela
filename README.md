@@ -2,7 +2,7 @@
 authored-by: gpt-5.3-codex
 ---
 
-# Ayuda Venezuela
+# Ayúdate Venezuela
 
 Aplicacion web mobile-first para reportar necesidades en crisis y coordinar voluntariado.
 
