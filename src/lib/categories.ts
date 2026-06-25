@@ -10,6 +10,18 @@ export const ZONES = [
   "Otro",
 ] as const;
 
+export const ZONE_COORDS: Record<string, { lat: number; lng: number }> = {
+  Petare: { lat: 10.4806, lng: -66.8142 },
+  Chacao: { lat: 10.4961, lng: -66.8563 },
+  "La Guaira": { lat: 10.6032, lng: -66.9333 },
+  Catia: { lat: 10.5112, lng: -66.9467 },
+  "El Valle": { lat: 10.4658, lng: -66.9119 },
+  Caricuao: { lat: 10.4367, lng: -66.9744 },
+  Baruta: { lat: 10.4383, lng: -66.8772 },
+  Libertador: { lat: 10.5060, lng: -66.9146 },
+  Otro: { lat: 10.48, lng: -66.9 },
+};
+
 export const CATEGORIES = [
   { value: "medica", label: "Asistencia Medica", icon: "[M]" },
   { value: "rescate", label: "Rescate", icon: "[R]" },

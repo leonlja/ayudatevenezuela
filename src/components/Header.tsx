@@ -10,6 +10,7 @@ export default function Header() {
         <nav className="flex gap-3 text-sm">
           <Link href="/reportar">Reportar</Link>
           <Link href="/mapa">Mapa</Link>
+          <Link href="/emergencias">SOS</Link>
           <a
             href="https://github.com/leonlja/ayudatevenezuela/issues/new?labels=bug&template=bug_report.md"
             target="_blank"

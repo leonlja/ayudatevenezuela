@@ -4,54 +4,87 @@ import { divIcon } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import type { PublicReport } from "@/lib/supabase";
+import { CATEGORIES, URGENCIES, ZONE_COORDS } from "@/lib/categories";
 import "leaflet/dist/leaflet.css";
 
 type Props = {
   reports: PublicReport[];
 };
 
-export default function MapView({ reports }: Props) {
-  const markerColor = (urgency: string) => {
-    if (urgency === "critica") return "#b91c1c";
-    if (urgency === "alta") return "#f97316";
-    if (urgency === "media") return "#facc15";
-    return "#16a34a";
+function getReportPosition(report: PublicReport): [number, number] {
+  if (report.lat && report.lng) return [report.lat, report.lng];
+  const fallback = ZONE_COORDS[report.zone] ?? ZONE_COORDS.Otro;
+  const jitter = () => (Math.random() - 0.5) * 0.01;
+  return [fallback.lat + jitter(), fallback.lng + jitter()];
+}
+
+function pinIcon(urgency: string) {
+  const colors: Record<string, string> = {
+    critica: "#b91c1c",
+    alta: "#f97316",
+    media: "#facc15",
+    baja: "#16a34a",
   };
+  const fill = colors[urgency] ?? "#64748b";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">
+    <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${fill}" stroke="#fff" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="5" fill="#fff" opacity="0.9"/>
+  </svg>`;
+  return divIcon({
+    html: svg,
+    className: "",
+    iconSize: [24, 36],
+    iconAnchor: [12, 36],
+    popupAnchor: [0, -36],
+  });
+}
 
-  const geoReports = reports.filter((report) => report.lat && report.lng);
+function categoryLabel(cat: string): string {
+  return cat
+    .split(",")
+    .map((c) => CATEGORIES.find((item) => item.value === c.trim())?.label ?? c)
+    .join(", ");
+}
 
+function urgencyLabel(u: string): string {
+  return URGENCIES.find((item) => item.value === u)?.label ?? u;
+}
+
+export default function MapView({ reports }: Props) {
   return (
     <div className="relative h-[60vh] overflow-hidden rounded border border-slate-700">
       <MapContainer center={[10.48, -66.9]} zoom={11} scrollWheelZoom className="h-full w-full">
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="OpenStreetMap" />
         <MarkerClusterGroup chunkedLoading>
-          {geoReports.map((report) => (
+          {reports.map((report) => (
             <Marker
               key={report.id}
-              position={[report.lat as number, report.lng as number]}
-              icon={divIcon({
-                html: `<span style="display:inline-block;width:16px;height:16px;border-radius:999px;border:2px solid #fff;background:${markerColor(report.urgency)}"></span>`,
-                className: "",
-                iconSize: [16, 16],
-              })}
+              position={getReportPosition(report)}
+              icon={pinIcon(report.urgency)}
             >
               <Popup>
-                <p>
-                  <strong>{report.zone}</strong>
-                </p>
-                <p>{report.description}</p>
-                <p>Urgencia: {report.urgency}</p>
+                <div style={{ minWidth: 180, fontSize: 13, lineHeight: 1.5, color: "#1e293b" }}>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14 }}>{report.zone}</p>
+                  <p style={{ margin: "0 0 4px" }}>{report.description}</p>
+                  <p style={{ margin: "0 0 2px" }}><strong>Categoria:</strong> {categoryLabel(report.category)}</p>
+                  <p style={{ margin: "0 0 2px" }}><strong>Urgencia:</strong> {urgencyLabel(report.urgency)}</p>
+                  <p style={{ margin: "0 0 2px" }}><strong>Personas:</strong> {report.people_count}</p>
+                  <p style={{ margin: "0 0 2px" }}><strong>Estado:</strong> {report.status}</p>
+                  {report.contact_name && <p style={{ margin: "0 0 2px" }}><strong>Contacto:</strong> {report.contact_name}</p>}
+                  <p style={{ margin: "4px 0 0", fontSize: 11, color: "#64748b" }}>
+                    {new Date(report.created_at).toLocaleString("es-VE")}
+                    {!report.lat && !report.lng ? " (ubicacion aprox.)" : ""}
+                  </p>
+                </div>
               </Popup>
             </Marker>
           ))}
         </MarkerClusterGroup>
       </MapContainer>
-      {geoReports.length === 0 && (
+      {reports.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
           <p className="rounded bg-slate-900 px-4 py-3 text-center font-semibold text-slate-300">
-            No hay reportes con ubicacion GPS aun.
-            <br />
-            <span className="text-sm font-normal text-slate-400">Los reportes con GPS apareceran aqui automaticamente.</span>
+            No hay reportes aun.
           </p>
         </div>
       )}
@@ -59,4 +92,4 @@ export default function MapView({ reports }: Props) {
   );
 }
 
-// authored-by: gpt-5.3-codex
+// authored-by: claude-opus-4-6

@@ -249,6 +249,7 @@ export default function ReportForm() {
 
         <label className="block">
           <span className="mb-1 block font-semibold">Direccion / referencia (opcional)</span>
+          <span className="mb-1 block text-sm text-slate-400">Indica el punto publico para recibir la ayuda</span>
           <input
             className="min-h-12 w-full rounded bg-slate-800 p-3"
             name="address"

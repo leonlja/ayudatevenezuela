@@ -22,14 +22,12 @@ export default function HomePage() {
           Quiero Ayudar
         </Link>
       </div>
-      <div className="rounded border border-slate-700 bg-slate-900 p-4">
-        <h2 className="mb-2 text-lg font-bold">Numeros de emergencia</h2>
-        <ul className="space-y-1">
-          <li>911</li>
-          <li>Bomberos: 171</li>
-          <li>Proteccion Civil: 0800-PCIVIL1</li>
-        </ul>
-      </div>
+      <Link
+        className="min-h-12 rounded border border-slate-700 bg-slate-900 p-4 text-center text-lg font-bold no-underline"
+        href="/emergencias"
+      >
+        Telefonos de emergencia
+      </Link>
     </section>
   );
 }
