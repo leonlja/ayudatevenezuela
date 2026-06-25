@@ -70,6 +70,7 @@ export async function GET() {
     .select(
       "id,created_at,zone,address,lat,lng,category,urgency,people_count,description,contact_name,status,source,telegram_username,location_source",
     )
+    .eq("hidden", false)
     .order("created_at", { ascending: false })
     .limit(500);
 
@@ -171,12 +172,24 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY missing" }, { status: 500 });
   }
 
-  const { id, status, volunteer_note, device_id } = (await request.json()) as {
+  const { id, status, volunteer_note, device_id, hidden } = (await request.json()) as {
     id?: string;
     status?: string;
     volunteer_note?: string;
     device_id?: string;
+    hidden?: boolean;
   };
+
+  if (typeof hidden === "boolean") {
+    if (!checkAdminAuth(request)) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    const { error } = await supabaseAdmin.from("reports").update({ hidden }).eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
   if (!id || !status) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   if (!VALID_STATUSES.has(status)) {
     return NextResponse.json({ error: "Estado invalido" }, { status: 400 });
