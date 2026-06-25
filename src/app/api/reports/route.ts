@@ -208,4 +208,21 @@ export async function PATCH(request: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
-// authored-by: claude-opus-4-7
+export async function DELETE(request: NextRequest) {
+  if (!supabaseAdmin) {
+    return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY missing" }, { status: 500 });
+  }
+  if (!checkAdminAuth(request)) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  const { id } = (await request.json()) as { id?: string | string[] };
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+  const ids = Array.isArray(id) ? id : [id];
+  const { error } = await supabaseAdmin.from("reports").delete().in("id", ids);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ deleted: ids.length });
+}
+
+// authored-by: claude-opus-4-6
