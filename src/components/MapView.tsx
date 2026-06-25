@@ -33,6 +33,27 @@ function getReportPosition(report: PublicReport): [number, number] {
   return [fallback.lat + jitterLat, fallback.lng + jitterLng];
 }
 
+function clusterIcon(cluster: { getChildCount: () => number }) {
+  const count = cluster.getChildCount();
+  const size = count < 10 ? 40 : count < 50 ? 48 : 56;
+  return divIcon({
+    html: `<div style="
+      width: ${size}px; height: ${size}px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255, 209, 0, 0.9);
+      border: 3px solid #fff;
+      border-radius: 50%;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: ${size > 40 ? 16 : 14}px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    ">${count}</div>`,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+}
+
 function pinIcon(urgency: string) {
   const colors: Record<string, string> = {
     critica: "#b91c1c",
@@ -80,7 +101,7 @@ export default function MapView({ reports }: Props) {
               pathOptions={{ color: "#64748b", weight: 1, fillOpacity: 0.08, dashArray: "4 4" }}
             />
           ))}
-        <MarkerClusterGroup chunkedLoading maxClusterRadius={30} disableClusteringAtZoom={13}>
+        <MarkerClusterGroup chunkedLoading maxClusterRadius={50} disableClusteringAtZoom={14} iconCreateFunction={clusterIcon}>
           {reports.map((report) => {
             const pos = getReportPosition(report);
             const locSource = report.location_source ?? "none";
