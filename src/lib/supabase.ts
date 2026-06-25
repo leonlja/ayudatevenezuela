@@ -28,6 +28,7 @@ export type PublicReport = {
   status: string;
   source: string;
   telegram_username: string | null;
+  location_source: "gps" | "ip" | "none";
 };
 
 // authored-by: gpt-5.3-codex

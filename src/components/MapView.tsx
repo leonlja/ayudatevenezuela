@@ -1,7 +1,7 @@
 "use client";
 
 import { divIcon } from "leaflet";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { Circle, MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import type { PublicReport } from "@/lib/supabase";
 import { CATEGORIES, URGENCIES, ZONE_COORDS } from "@/lib/categories";
@@ -11,8 +11,13 @@ type Props = {
   reports: PublicReport[];
 };
 
+function hasValidCoords(report: PublicReport): boolean {
+  if (report.lat == null || report.lng == null) return false;
+  return Math.abs(report.lat) > 1 || Math.abs(report.lng) > 1;
+}
+
 function getReportPosition(report: PublicReport): [number, number] {
-  if (report.lat && report.lng) return [report.lat, report.lng];
+  if (hasValidCoords(report)) return [report.lat!, report.lng!];
   const fallback = ZONE_COORDS[report.zone] ?? ZONE_COORDS.Otro;
   const jitter = () => (Math.random() - 0.5) * 0.01;
   return [fallback.lat + jitter(), fallback.lng + jitter()];
@@ -55,30 +60,45 @@ export default function MapView({ reports }: Props) {
     <div className="relative h-[60vh] overflow-hidden rounded border border-slate-700">
       <MapContainer center={[10.48, -66.9]} zoom={11} scrollWheelZoom className="h-full w-full">
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="OpenStreetMap" />
-        <MarkerClusterGroup chunkedLoading>
-          {reports.map((report) => (
-            <Marker
-              key={report.id}
-              position={getReportPosition(report)}
-              icon={pinIcon(report.urgency)}
-            >
-              <Popup>
-                <div style={{ minWidth: 180, fontSize: 13, lineHeight: 1.5, color: "#1e293b" }}>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14 }}>{report.zone}</p>
-                  <p style={{ margin: "0 0 4px" }}>{report.description}</p>
-                  <p style={{ margin: "0 0 2px" }}><strong>Categoria:</strong> {categoryLabel(report.category)}</p>
-                  <p style={{ margin: "0 0 2px" }}><strong>Urgencia:</strong> {urgencyLabel(report.urgency)}</p>
-                  <p style={{ margin: "0 0 2px" }}><strong>Personas:</strong> {report.people_count}</p>
-                  <p style={{ margin: "0 0 2px" }}><strong>Estado:</strong> {report.status === "in_progress" ? "Ayuda en camino" : report.status === "resolved" ? "Resuelto" : "Pendiente"}</p>
-                  {report.contact_name && <p style={{ margin: "0 0 2px" }}><strong>Contacto:</strong> {report.contact_name}</p>}
-                  <p style={{ margin: "4px 0 0", fontSize: 11, color: "#64748b" }}>
-                    {new Date(report.created_at).toLocaleString("es-VE")}
-                    {!report.lat && !report.lng ? " (ubicacion aprox.)" : ""}
-                  </p>
-                </div>
-              </Popup>
-            </Marker>
+        {reports
+          .filter((r) => (r.location_source ?? "none") === "ip" && hasValidCoords(r))
+          .map((report) => (
+            <Circle
+              key={`radius-${report.id}`}
+              center={[report.lat!, report.lng!]}
+              radius={5000}
+              pathOptions={{ color: "#64748b", weight: 1, fillOpacity: 0.08, dashArray: "4 4" }}
+            />
           ))}
+        <MarkerClusterGroup chunkedLoading maxClusterRadius={30} disableClusteringAtZoom={13}>
+          {reports.map((report) => {
+            const pos = getReportPosition(report);
+            const locSource = report.location_source ?? "none";
+
+            return (
+              <Marker
+                key={report.id}
+                position={pos}
+                icon={pinIcon(report.urgency)}
+              >
+                <Popup>
+                  <div style={{ minWidth: 180, fontSize: 13, lineHeight: 1.5, color: "#1e293b" }}>
+                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14 }}>{report.zone}</p>
+                    <p style={{ margin: "0 0 4px" }}>{report.description}</p>
+                    <p style={{ margin: "0 0 2px" }}><strong>Categoria:</strong> {categoryLabel(report.category)}</p>
+                    <p style={{ margin: "0 0 2px" }}><strong>Urgencia:</strong> {urgencyLabel(report.urgency)}</p>
+                    <p style={{ margin: "0 0 2px" }}><strong>Personas:</strong> {report.people_count}</p>
+                    <p style={{ margin: "0 0 2px" }}><strong>Estado:</strong> {report.status === "in_progress" ? "Ayuda en camino" : report.status === "resolved" ? "Resuelto" : "Pendiente"}</p>
+                    {report.contact_name && <p style={{ margin: "0 0 2px" }}><strong>Contacto:</strong> {report.contact_name}</p>}
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#64748b" }}>
+                      {new Date(report.created_at).toLocaleString("es-VE")}
+                      {locSource === "ip" ? " (ubicacion por IP ~5km)" : locSource === "none" ? " (solo zona)" : ""}
+                    </p>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MarkerClusterGroup>
       </MapContainer>
       {reports.length === 0 && (

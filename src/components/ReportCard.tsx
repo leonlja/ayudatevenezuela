@@ -20,6 +20,8 @@ export default function ReportCard({ report, onSetInProgress }: Props) {
       <p>{report.description}</p>
       <p className="text-sm text-slate-300">
         Personas: {report.people_count}
+        {report.location_source === "gps" && " · GPS"}
+        {report.location_source === "ip" && " · Ubicacion aprox."}
       </p>
       {report.contact_name ? <p className="text-sm text-slate-300">Contacto: {report.contact_name}</p> : null}
       {report.status !== "pending" ? (

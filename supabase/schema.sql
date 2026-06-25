@@ -22,7 +22,8 @@ create table if not exists reports (
   telegram_username text,
   ip_hash text,
   device_id text,
-  volunteer_note text
+  volunteer_note text,
+  location_source text not null default 'none' check (location_source in ('gps','ip','none'))
 );
 
 create index if not exists idx_reports_status_urgency on reports (status, urgency);

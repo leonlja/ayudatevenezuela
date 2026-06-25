@@ -121,6 +121,7 @@ export function getTelegramBot() {
       return;
     }
 
+    const hasLocation = state.lat_exact != null && state.lng_exact != null;
     const { error } = await supabaseAdmin.from("reports").insert({
       zone: state.zone || "Otro",
       address: null,
@@ -139,6 +140,7 @@ export function getTelegramBot() {
       telegram_username: ctx.from?.username ?? null,
       ip_hash: "telegram",
       device_id: `tg-${ctx.from?.id ?? "unknown"}`,
+      location_source: hasLocation ? "gps" : "none",
     });
 
     if (error) {

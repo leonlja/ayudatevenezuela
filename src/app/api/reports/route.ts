@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { fuzzCoord } from "@/lib/geo";
+import { geolocateIp } from "@/lib/ip-geo";
 import { CATEGORIES, URGENCIES, ZONES, STATUSES } from "@/lib/categories";
 
 const WINDOW_MS = 60 * 60 * 1000;
@@ -35,6 +36,7 @@ async function canPassRateLimit(ipHash: string, deviceId: string): Promise<boole
 }
 
 function parseNum(value: unknown): number | null {
+  if (value === "" || value === null || value === undefined) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -66,7 +68,7 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("reports")
     .select(
-      "id,created_at,zone,address,lat,lng,category,urgency,people_count,description,contact_name,status,source,telegram_username",
+      "id,created_at,zone,address,lat,lng,category,urgency,people_count,description,contact_name,status,source,telegram_username,location_source",
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -115,13 +117,31 @@ export async function POST(request: NextRequest) {
 
   const latExact = parseNum(body.lat_exact);
   const lngExact = parseNum(body.lng_exact);
-  const fuzzy = latExact !== null && lngExact !== null ? fuzzCoord(latExact, lngExact) : { lat: null, lng: null };
+
+  let lat: number | null = null;
+  let lng: number | null = null;
+  let locationSource: "gps" | "ip" | "none" = "none";
+
+  if (latExact !== null && lngExact !== null) {
+    const fuzzy = fuzzCoord(latExact, lngExact);
+    lat = fuzzy.lat;
+    lng = fuzzy.lng;
+    locationSource = "gps";
+  } else {
+    const clientIp = getClientIp(request);
+    const ipGeo = await geolocateIp(clientIp);
+    if (ipGeo) {
+      lat = ipGeo.lat;
+      lng = ipGeo.lng;
+      locationSource = "ip";
+    }
+  }
 
   const payload = {
     zone,
     address: body.address || null,
-    lat: fuzzy.lat,
-    lng: fuzzy.lng,
+    lat,
+    lng,
     lat_exact: latExact,
     lng_exact: lngExact,
     category,
@@ -134,6 +154,7 @@ export async function POST(request: NextRequest) {
     source: "web",
     ip_hash: ipHash,
     device_id: deviceId,
+    location_source: locationSource,
   };
 
   if (!payload.description) {
