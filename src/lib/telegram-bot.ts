@@ -1,12 +1,13 @@
 import { Bot, Context, InlineKeyboard, Keyboard } from "grammy";
-import { CATEGORIES, URGENCIES, ZONES } from "@/lib/categories";
+import { CATEGORIES, URGENCIES, ZONE_GROUPS } from "@/lib/categories";
 import { supabaseAdmin } from "@/lib/supabase";
 import { fuzzCoord } from "@/lib/geo";
 
 type SessionState = {
-  step: "category" | "urgency" | "zone" | "description";
+  step: "category" | "urgency" | "municipality" | "sector" | "description";
   category?: string;
   urgency?: string;
+  municipality?: string;
   zone?: string;
   lat_exact?: number;
   lng_exact?: number;
@@ -87,17 +88,42 @@ export function getTelegramBot() {
 
     if (data.startsWith("urg:")) {
       state.urgency = data.replace("urg:", "");
-      state.step = "zone";
+      state.step = "municipality";
       await setSession(ctx.from.id, state);
       const keyboard = new InlineKeyboard();
-      ZONES.forEach((zone) => keyboard.text(zone, `zone:${zone}`).row());
-      await ctx.reply("Selecciona zona:", { reply_markup: keyboard });
+      ZONE_GROUPS.forEach((g) => keyboard.text(g.municipality, `mun:${g.municipality}`).row());
+      keyboard.text("Otro", "mun:Otro").row();
+      await ctx.reply("Selecciona municipio:", { reply_markup: keyboard });
       await ctx.answerCallbackQuery();
       return;
     }
 
-    if (data.startsWith("zone:")) {
-      state.zone = data.replace("zone:", "");
+    if (data.startsWith("mun:")) {
+      const mun = data.replace("mun:", "");
+      if (mun === "Otro") {
+        state.zone = "Otro";
+        state.step = "description";
+        await setSession(ctx.from.id, state);
+        await ctx.reply("Comparte ubicacion (opcional) y luego describe la situacion.", {
+          reply_markup: new Keyboard().requestLocation("Compartir ubicacion").resized(),
+        });
+        await ctx.answerCallbackQuery();
+        return;
+      }
+      state.municipality = mun;
+      state.step = "sector";
+      await setSession(ctx.from.id, state);
+      const group = ZONE_GROUPS.find((g) => g.municipality === mun);
+      const keyboard = new InlineKeyboard();
+      group?.sectors.forEach((s) => keyboard.text(s, `sec:${s}`).row());
+      await ctx.reply(`Sector en ${mun}:`, { reply_markup: keyboard });
+      await ctx.answerCallbackQuery();
+      return;
+    }
+
+    if (data.startsWith("sec:")) {
+      const sector = data.replace("sec:", "");
+      state.zone = `${state.municipality} - ${sector}`;
       state.step = "description";
       await setSession(ctx.from.id, state);
       await ctx.reply("Comparte ubicacion (opcional) y luego describe la situacion.", {

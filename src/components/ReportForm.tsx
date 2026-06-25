@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { CATEGORIES, URGENCIES, ZONES } from "@/lib/categories";
+import { CATEGORIES, URGENCIES, ZONE_GROUPS } from "@/lib/categories";
 import { flushQueue, queueReport } from "@/lib/offline-queue";
 
 const MAX_CATEGORIES = 3;
@@ -23,7 +23,7 @@ type FormData = {
 };
 
 const initialState: FormData = {
-  zone: ZONES[0],
+  zone: "",
   categories: [],
   urgency: "",
   people_count: 1,
@@ -69,7 +69,7 @@ export default function ReportForm() {
       .map((c) => CATEGORIES.find((item) => item.value === c)?.label ?? c)
       .join(", ");
     return {
-      zone: form.zone,
+      zone: form.zone || "Sin seleccionar",
       category: catLabels || "Sin seleccionar",
       urgency: URGENCIES.find((item) => item.value === form.urgency)?.label ?? "Sin seleccionar",
       people_count: form.people_count,
@@ -81,6 +81,11 @@ export default function ReportForm() {
     setStatus("sending");
     setError("");
 
+    if (!form.zone) {
+      setStatus("error");
+      setError("Selecciona una zona.");
+      return;
+    }
     if (form.categories.length === 0) {
       setStatus("error");
       setError("Selecciona al menos una categoria.");
@@ -165,11 +170,20 @@ export default function ReportForm() {
             className="min-h-12 w-full rounded bg-slate-800 p-3"
             name="zone"
           >
-            {ZONES.map((zone) => (
-              <option key={zone} value={zone}>
-                {zone}
-              </option>
+            <option value="" disabled>Selecciona zona...</option>
+            {ZONE_GROUPS.map((group) => (
+              <optgroup key={group.municipality} label={group.municipality}>
+                {group.sectors.map((sector) => {
+                  const value = `${group.municipality} - ${sector}`;
+                  return (
+                    <option key={value} value={value}>
+                      {sector}
+                    </option>
+                  );
+                })}
+              </optgroup>
             ))}
+            <option value="Otro">Otro</option>
           </select>
         </label>
 
