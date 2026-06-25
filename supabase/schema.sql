@@ -21,7 +21,8 @@ create table if not exists reports (
   source text not null default 'web' check (source in ('web','telegram')),
   telegram_username text,
   ip_hash text,
-  device_id text
+  device_id text,
+  volunteer_note text
 );
 
 create index if not exists idx_reports_status_urgency on reports (status, urgency);

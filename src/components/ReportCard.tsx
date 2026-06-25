@@ -19,16 +19,21 @@ export default function ReportCard({ report, onSetInProgress }: Props) {
       </div>
       <p>{report.description}</p>
       <p className="text-sm text-slate-300">
-        Personas: {report.people_count} | Estado: {report.status}
+        Personas: {report.people_count}
       </p>
       {report.contact_name ? <p className="text-sm text-slate-300">Contacto: {report.contact_name}</p> : null}
+      {report.status !== "pending" ? (
+        <p className="rounded bg-blue-900/50 p-2 text-center text-sm font-semibold text-blue-300">
+          Ayuda en camino
+        </p>
+      ) : null}
       {onSetInProgress && report.status === "pending" ? (
         <button
           type="button"
           onClick={() => onSetInProgress(report.id)}
           className="min-h-12 w-full rounded bg-[#0033A0] px-4 py-3 font-semibold text-white"
         >
-          Marcar en progreso
+          Quiero ayudar
         </button>
       ) : null}
     </article>

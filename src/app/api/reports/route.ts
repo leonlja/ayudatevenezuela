@@ -149,17 +149,24 @@ export async function PATCH(request: NextRequest) {
   if (!supabaseAdmin) {
     return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY missing" }, { status: 500 });
   }
-  if (!checkAdminAuth(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
-  const { id, status } = (await request.json()) as { id?: string; status?: string };
+  const { id, status, volunteer_note } = (await request.json()) as {
+    id?: string;
+    status?: string;
+    volunteer_note?: string;
+  };
   if (!id || !status) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   if (!VALID_STATUSES.has(status)) {
     return NextResponse.json({ error: "Estado invalido" }, { status: 400 });
   }
+  if (status === "in_progress" && !volunteer_note?.trim()) {
+    return NextResponse.json({ error: "Describe la ayuda que estas prestando" }, { status: 400 });
+  }
 
   const update: Record<string, unknown> = { status };
+  if (volunteer_note?.trim()) {
+    update.volunteer_note = volunteer_note.trim();
+  }
   if (status === "resolved") {
     update.resolved_at = new Date().toISOString();
   }

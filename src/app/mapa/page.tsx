@@ -24,26 +24,18 @@ export default function MapaPage() {
   }, []);
 
   const onSetInProgress = async (id: string) => {
-    let token = sessionStorage.getItem("admin-token");
-    if (!token) {
-      const input = prompt("Ingresa el codigo de voluntario:");
-      if (!input) return;
-      token = input;
-      sessionStorage.setItem("admin-token", token);
-    }
+    const note = prompt("Describe brevemente la ayuda que vas a prestar:");
+    if (!note?.trim()) return;
 
     const res = await fetch("/api/reports", {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "x-admin-token": token,
-      },
-      body: JSON.stringify({ id, status: "in_progress" }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status: "in_progress", volunteer_note: note }),
     });
 
-    if (res.status === 401) {
-      sessionStorage.removeItem("admin-token");
-      alert("Codigo incorrecto. Intenta de nuevo.");
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      alert(data.error || "Error al actualizar el reporte.");
       return;
     }
 

@@ -69,7 +69,7 @@ export default function MapView({ reports }: Props) {
                   <p style={{ margin: "0 0 2px" }}><strong>Categoria:</strong> {categoryLabel(report.category)}</p>
                   <p style={{ margin: "0 0 2px" }}><strong>Urgencia:</strong> {urgencyLabel(report.urgency)}</p>
                   <p style={{ margin: "0 0 2px" }}><strong>Personas:</strong> {report.people_count}</p>
-                  <p style={{ margin: "0 0 2px" }}><strong>Estado:</strong> {report.status}</p>
+                  <p style={{ margin: "0 0 2px" }}><strong>Estado:</strong> {report.status === "in_progress" ? "Ayuda en camino" : report.status === "resolved" ? "Resuelto" : "Pendiente"}</p>
                   {report.contact_name && <p style={{ margin: "0 0 2px" }}><strong>Contacto:</strong> {report.contact_name}</p>}
                   <p style={{ margin: "4px 0 0", fontSize: 11, color: "#64748b" }}>
                     {new Date(report.created_at).toLocaleString("es-VE")}
