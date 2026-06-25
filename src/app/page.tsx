@@ -30,12 +30,6 @@ export default function HomePage() {
           <li>Proteccion Civil: 0800-PCIVIL1</li>
         </ul>
       </div>
-      <p>
-        Canal alterno:{" "}
-        <a href="https://t.me/AyudaVenezuelaBot" target="_blank" rel="noreferrer">
-          @AyudaVenezuelaBot
-        </a>
-      </p>
     </section>
   );
 }
