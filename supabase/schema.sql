@@ -34,6 +34,7 @@ create index if not exists idx_reports_category on reports (category);
 create or replace function set_updated_at()
 returns trigger
 language plpgsql
+set search_path = ''
 as $$
 begin
   new.updated_at = now();
@@ -49,8 +50,9 @@ for each row execute function set_updated_at();
 create or replace function purge_sensitive_fields()
 returns void
 language sql
+set search_path = ''
 as $$
-  update reports
+  update public.reports
   set lat_exact = null,
       lng_exact = null,
       contact_phone = null
