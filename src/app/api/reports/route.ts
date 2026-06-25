@@ -171,17 +171,28 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY missing" }, { status: 500 });
   }
 
-  const { id, status, volunteer_note } = (await request.json()) as {
+  const { id, status, volunteer_note, device_id } = (await request.json()) as {
     id?: string;
     status?: string;
     volunteer_note?: string;
+    device_id?: string;
   };
   if (!id || !status) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   if (!VALID_STATUSES.has(status)) {
     return NextResponse.json({ error: "Estado invalido" }, { status: 400 });
   }
-  if (status === "in_progress" && !volunteer_note?.trim()) {
-    return NextResponse.json({ error: "Describe la ayuda que estas prestando" }, { status: 400 });
+
+  if (status === "resolved" && !checkAdminAuth(request)) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  if (status === "in_progress") {
+    if (!volunteer_note?.trim()) {
+      return NextResponse.json({ error: "Describe la ayuda que estas prestando" }, { status: 400 });
+    }
+    if (!device_id) {
+      return NextResponse.json({ error: "Identificador de dispositivo requerido" }, { status: 400 });
+    }
   }
 
   const update: Record<string, unknown> = { status };

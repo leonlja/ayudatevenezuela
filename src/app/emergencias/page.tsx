@@ -94,7 +94,7 @@ export default function EmergenciasPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded border border-slate-700 bg-slate-900 p-4">
-      <h2 className="mb-3 text-lg font-bold text-[#FFD100]">{title}</h2>
+      <h2 className="mb-3 text-lg font-bold text-ve-yellow">{title}</h2>
       <ul className="space-y-2">{children}</ul>
     </div>
   );

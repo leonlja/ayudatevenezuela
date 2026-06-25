@@ -248,7 +248,7 @@ export default function ReportForm() {
                   type="button"
                   className={`min-h-12 rounded border p-3 text-left transition-colors ${
                     selected
-                      ? "border-[#FFD100] bg-[#FFD100]/10 text-white"
+                      ? "border-ve-yellow bg-ve-yellow/10 text-white"
                       : atLimit
                         ? "cursor-not-allowed border-slate-800 text-slate-600"
                         : "border-slate-700 text-slate-300"
@@ -398,7 +398,7 @@ export default function ReportForm() {
               </button>
               <Link
                 href="/mapa"
-                className="flex min-h-12 items-center justify-center rounded bg-[#0033A0] p-3 font-semibold text-white no-underline transition-colors hover:bg-[#0033A0]/80"
+                className="flex min-h-12 items-center justify-center rounded bg-ve-blue p-3 font-semibold text-white no-underline transition-colors hover:bg-ve-blue/80"
               >
                 Ver en mapa
               </Link>

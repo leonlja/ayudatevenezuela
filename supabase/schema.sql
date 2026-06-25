@@ -61,6 +61,13 @@ $$;
 
 alter table reports enable row level security;
 
+create or replace view public_reports as
+select
+  id, created_at, zone, address, lat, lng, category, urgency,
+  people_count, description, contact_name, status, resolved_at,
+  source, telegram_username, location_source, volunteer_note
+from reports;
+
 drop policy if exists "public_read_reports" on reports;
 create policy "public_read_reports"
 on reports

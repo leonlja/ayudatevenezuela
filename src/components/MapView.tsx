@@ -16,11 +16,21 @@ function hasValidCoords(report: PublicReport): boolean {
   return Math.abs(report.lat) > 1 || Math.abs(report.lng) > 1;
 }
 
+function hashId(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) {
+    h = ((h << 5) - h + id.charCodeAt(i)) | 0;
+  }
+  return h;
+}
+
 function getReportPosition(report: PublicReport): [number, number] {
   if (hasValidCoords(report)) return [report.lat!, report.lng!];
   const fallback = ZONE_COORDS[report.zone] ?? ZONE_COORDS.Otro;
-  const jitter = () => (Math.random() - 0.5) * 0.01;
-  return [fallback.lat + jitter(), fallback.lng + jitter()];
+  const h = hashId(report.id);
+  const jitterLat = ((h & 0xffff) / 0xffff - 0.5) * 0.01;
+  const jitterLng = (((h >> 16) & 0xffff) / 0xffff - 0.5) * 0.01;
+  return [fallback.lat + jitterLat, fallback.lng + jitterLng];
 }
 
 function pinIcon(urgency: string) {

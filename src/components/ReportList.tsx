@@ -26,7 +26,7 @@ export default function ReportList({ reports, onSetInProgress }: Props) {
     () =>
       reports
         .filter((item) => !zone || item.zone === zone)
-        .filter((item) => !category || item.category === category)
+        .filter((item) => !category || item.category.split(",").map((c) => c.trim()).includes(category))
         .filter((item) => !status || item.status === status)
         .sort((a, b) => (urgencyOrder[a.urgency] ?? 9) - (urgencyOrder[b.urgency] ?? 9)),
     [category, reports, status, zone],

@@ -167,12 +167,12 @@ export const ZONE_COORDS: Record<string, { lat: number; lng: number }> = {
 };
 
 export const CATEGORIES = [
-  { value: "medica", label: "Asistencia Medica", icon: "[M]" },
-  { value: "rescate", label: "Rescate", icon: "[R]" },
-  { value: "agua_comida", label: "Agua/Comida", icon: "[A]" },
-  { value: "refugio", label: "Refugio", icon: "[H]" },
-  { value: "insumos", label: "Insumos", icon: "[I]" },
-  { value: "otro", label: "Otro", icon: "[O]" },
+  { value: "medica", label: "Asistencia Medica", icon: "⚕️" },
+  { value: "rescate", label: "Rescate", icon: "🆘" },
+  { value: "agua_comida", label: "Agua/Comida", icon: "💧" },
+  { value: "refugio", label: "Refugio", icon: "🏠" },
+  { value: "insumos", label: "Insumos", icon: "📦" },
+  { value: "otro", label: "Otro", icon: "❓" },
 ] as const;
 
 export const URGENCIES = [
