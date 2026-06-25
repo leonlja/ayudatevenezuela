@@ -1,5 +1,5 @@
 ---
-authored-by: gpt-5.3-codex
+authored-by: claude-opus-4-6
 ---
 
 # Ayúdate Venezuela
@@ -16,40 +16,71 @@ Aplicacion web mobile-first para reportar necesidades en crisis y coordinar volu
 
 ## Setup local
 
-1. Copiar variables:
-   - `cp .env.example .env.local`
-2. Crear tabla en Supabase:
-   - Ejecutar `supabase/schema.sql`
-3. Instalar y correr:
-   - `npm install`
-   - `npm run dev`
+1. `cp .env.example .env.local`
+2. Ejecutar `supabase/schema.sql` en Supabase
+3. `npm install && npm run dev`
 
 ## Variables de entorno
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `RATE_LIMIT_SECRET`
-- `TELEGRAM_BOT_TOKEN`
+| Variable | Uso |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave publica Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio (server-side) |
+| `RATE_LIMIT_SECRET` | HMAC secret para hash de IP |
+| `TELEGRAM_BOT_TOKEN` | Token del bot Grammy |
+| `TELEGRAM_WEBHOOK_SECRET` | Validacion de webhook (opcional) |
+| `ADMIN_SECRET` | Token para operaciones admin (PATCH resolved, DELETE, hide) |
 
-## Endpoints
+## API
 
-- `GET /api/reports`: lista publica sin telefono ni GPS exacto
-- `POST /api/reports`: crea reporte (honeypot + rate limit)
-- `PATCH /api/reports`: actualiza estado (`pending`, `in_progress`, `resolved`)
-- `POST /api/telegram/webhook`: webhook del bot de Telegram
+| Metodo | Ruta | Auth | Descripcion |
+|---|---|---|---|
+| `GET` | `/api/reports` | — | Lista publica (sin PII, excluye `hidden`) |
+| `POST` | `/api/reports` | — | Crear reporte (honeypot + rate limit) |
+| `PATCH` | `/api/reports` | parcial | Cambiar estado o ocultar reporte |
+| `DELETE` | `/api/reports` | admin | Eliminar reportes |
+| `POST` | `/api/telegram/webhook` | — | Webhook Telegram |
+
+### Admin (PATCH)
+
+```bash
+# Ocultar reporte
+curl -X PATCH https://ayudatevenezuela.vercel.app/api/reports \
+  -H "Content-Type: application/json" \
+  -H "x-admin-token: $ADMIN_SECRET" \
+  -d '{"id": "UUID", "hidden": true}'
+
+# Marcar resuelto
+curl -X PATCH https://ayudatevenezuela.vercel.app/api/reports \
+  -H "Content-Type: application/json" \
+  -H "x-admin-token: $ADMIN_SECRET" \
+  -d '{"id": "UUID", "status": "resolved"}'
+```
+
+### Admin (DELETE)
+
+```bash
+curl -X DELETE https://ayudatevenezuela.vercel.app/api/reports \
+  -H "Content-Type: application/json" \
+  -H "x-admin-token: $ADMIN_SECRET" \
+  -d '{"id": ["UUID1", "UUID2"]}'
+```
 
 ## Deploy (Vercel)
 
 1. Importar repo en Vercel.
 2. Definir env vars de `.env.example`.
 3. Configurar webhook Telegram:
-   - `https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://<tu-dominio>/api/telegram/webhook`
+   `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<dominio>/api/telegram/webhook`
 
-## Verificacion
+## DB migrations
 
-- `npm run lint`
-- `npm run build`
-- `npm run test`
+Ejecutar en Supabase SQL Editor cuando se actualice `schema.sql`:
 
-<!-- authored-by: gpt-5.3-codex -->
+```sql
+-- v2: hidden column
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS hidden boolean NOT NULL DEFAULT false;
+```
+
+<!-- authored-by: claude-opus-4-6 -->
