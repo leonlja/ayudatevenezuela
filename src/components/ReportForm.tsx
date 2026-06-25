@@ -9,6 +9,8 @@ import { flushQueue, queueReport } from "@/lib/offline-queue";
 const MAX_CATEGORIES = 3;
 
 type FormData = {
+  municipality: string;
+  sector: string;
   zone: string;
   categories: string[];
   urgency: string;
@@ -23,6 +25,8 @@ type FormData = {
 };
 
 const initialState: FormData = {
+  municipality: "",
+  sector: "",
   zone: "",
   categories: [],
   urgency: "",
@@ -68,8 +72,15 @@ export default function ReportForm() {
     const catLabels = form.categories
       .map((c) => CATEGORIES.find((item) => item.value === c)?.label ?? c)
       .join(", ");
+    const zoneSummary = form.municipality
+      ? form.municipality === "Otro"
+        ? "Otro"
+        : form.sector
+          ? `${form.municipality} - ${form.sector}`
+          : form.municipality
+      : "Sin seleccionar";
     return {
-      zone: form.zone || "Sin seleccionar",
+      zone: zoneSummary,
       category: catLabels || "Sin seleccionar",
       urgency: URGENCIES.find((item) => item.value === form.urgency)?.label ?? "Sin seleccionar",
       people_count: form.people_count,
@@ -81,9 +92,9 @@ export default function ReportForm() {
     setStatus("sending");
     setError("");
 
-    if (!form.zone) {
+    if (!form.municipality || (form.municipality !== "Otro" && !form.sector)) {
       setStatus("error");
-      setError("Selecciona una zona.");
+      setError("Selecciona municipio y sector.");
       return;
     }
     if (form.categories.length === 0) {
@@ -161,31 +172,64 @@ export default function ReportForm() {
       </div>
 
       <form className="space-y-4" onSubmit={submit} method="POST" action="/api/reports">
-        <label className="block">
-          <span className="mb-1 block font-semibold">Zona</span>
-          <select
-            required
-            value={form.zone}
-            onChange={(event) => setForm({ ...form, zone: event.target.value })}
-            className="min-h-12 w-full rounded bg-slate-800 p-3"
-            name="zone"
-          >
-            <option value="" disabled>Selecciona zona...</option>
-            {ZONE_GROUPS.map((group) => (
-              <optgroup key={group.municipality} label={group.municipality}>
-                {group.sectors.map((sector) => {
-                  const value = `${group.municipality} - ${sector}`;
-                  return (
-                    <option key={value} value={value}>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block font-semibold">Municipio</span>
+            <select
+              required
+              value={form.municipality}
+              onChange={(event) => {
+                const mun = event.target.value;
+                const isOtro = mun === "Otro";
+                setForm({
+                  ...form,
+                  municipality: mun,
+                  sector: isOtro ? "" : "",
+                  zone: isOtro ? "Otro" : "",
+                });
+              }}
+              className="min-h-12 w-full rounded bg-slate-800 p-3"
+            >
+              <option value="" disabled>Municipio...</option>
+              {ZONE_GROUPS.map((group) => (
+                <option key={group.municipality} value={group.municipality}>
+                  {group.municipality}
+                </option>
+              ))}
+              <option value="Otro">Otro</option>
+            </select>
+          </label>
+
+          {form.municipality && form.municipality !== "Otro" && (
+            <label className="block">
+              <span className="mb-1 block font-semibold">Sector</span>
+              <select
+                required
+                value={form.sector}
+                onChange={(event) => {
+                  const sec = event.target.value;
+                  setForm({
+                    ...form,
+                    sector: sec,
+                    zone: `${form.municipality} - ${sec}`,
+                  });
+                }}
+                className="min-h-12 w-full rounded bg-slate-800 p-3"
+              >
+                <option value="" disabled>Sector...</option>
+                {ZONE_GROUPS.find((g) => g.municipality === form.municipality)?.sectors.map(
+                  (sector) => (
+                    <option key={sector} value={sector}>
                       {sector}
                     </option>
-                  );
-                })}
-              </optgroup>
-            ))}
-            <option value="Otro">Otro</option>
-          </select>
-        </label>
+                  ),
+                )}
+              </select>
+            </label>
+          )}
+        </div>
+
+        <input type="hidden" name="zone" value={form.zone} />
 
         <div>
           <p className="mb-2 font-semibold">
