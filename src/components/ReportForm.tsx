@@ -318,102 +318,6 @@ export default function ReportForm() {
       </div>
 
       <form className="space-y-4" onSubmit={submit} method="POST" action="/api/reports">
-        {/* --- Location section --- */}
-        <div className="space-y-2">
-          <p className="font-semibold">Ubicacion (opcional)</p>
-          <button
-            type="button"
-            onClick={fillGps}
-            className={`min-h-12 w-full rounded border p-3 transition-colors ${
-              locationMode === "gps"
-                ? "border-green-500 bg-green-500/10 text-green-400"
-                : "border-slate-500"
-            }`}
-          >
-            {locationMode === "gps" ? "GPS capturado" : "Usar ubicacion GPS"}
-          </button>
-          <div className="relative">
-            <div className="absolute inset-x-0 top-0 flex items-center justify-center">
-              <span className="bg-slate-900 px-2 text-xs text-slate-500">o</span>
-            </div>
-            <hr className="border-slate-700" />
-          </div>
-          <p className="text-sm text-slate-400">Usar punto de referencia</p>
-          <ReferenceSearch
-            selected={selectedReference}
-            onSelect={handleReferenceSelect}
-            onClear={handleReferenceClear}
-          />
-        </div>
-
-        {/* --- Municipality / Sector --- */}
-        <div className="grid gap-3 md:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 block font-semibold">
-              Municipio
-              {refAutoFilled && <span className="ml-2 text-xs font-normal text-green-400">(auto)</span>}
-            </span>
-            <select
-              required
-              value={form.municipality}
-              onChange={(event) => {
-                const mun = event.target.value;
-                const isOtro = mun === "Otro";
-                setForm({
-                  ...form,
-                  municipality: mun,
-                  sector: isOtro ? "" : "",
-                  zone: isOtro ? "Otro" : "",
-                });
-                if (refAutoFilled) setRefAutoFilled(false);
-              }}
-              className="min-h-12 w-full rounded bg-slate-800 p-3"
-            >
-              <option value="" disabled>Municipio...</option>
-              {ZONE_GROUPS.map((group) => (
-                <option key={group.municipality} value={group.municipality}>
-                  {group.municipality}
-                </option>
-              ))}
-              <option value="Otro">Otro</option>
-            </select>
-          </label>
-
-          {form.municipality && form.municipality !== "Otro" && (
-            <label className="block">
-              <span className="mb-1 block font-semibold">
-                Sector
-                {refAutoFilled && form.sector && <span className="ml-2 text-xs font-normal text-green-400">(auto)</span>}
-              </span>
-              <select
-                required
-                value={form.sector}
-                onChange={(event) => {
-                  const sec = event.target.value;
-                  setForm({
-                    ...form,
-                    sector: sec,
-                    zone: `${form.municipality} - ${sec}`,
-                  });
-                  if (refAutoFilled) setRefAutoFilled(false);
-                }}
-                className="min-h-12 w-full rounded bg-slate-800 p-3"
-              >
-                <option value="" disabled>Sector...</option>
-                {ZONE_GROUPS.find((g) => g.municipality === form.municipality)?.sectors.map(
-                  (sector) => (
-                    <option key={sector} value={sector}>
-                      {sector}
-                    </option>
-                  ),
-                )}
-              </select>
-            </label>
-          )}
-        </div>
-
-        <input type="hidden" name="zone" value={form.zone} />
-
         {/* --- Categories --- */}
         <div>
           <p className="mb-2 font-semibold">
@@ -490,17 +394,6 @@ export default function ReportForm() {
           />
         </label>
 
-        <label className="block">
-          <span className="mb-1 block font-semibold">Direccion / referencia (opcional)</span>
-          <span className="mb-1 block text-sm text-slate-400">Indica el punto publico para recibir la ayuda</span>
-          <input
-            className="min-h-12 w-full rounded bg-slate-800 p-3"
-            name="address"
-            value={form.address}
-            onChange={(event) => setForm({ ...form, address: event.target.value })}
-          />
-        </label>
-
         <div className="grid gap-3 md:grid-cols-2">
           <label className="block">
             <span className="mb-1 block font-semibold">Nombre (opcional)</span>
@@ -521,6 +414,115 @@ export default function ReportForm() {
             />
           </label>
         </div>
+
+        {/* --- Location group --- */}
+        <fieldset className="space-y-4 rounded-lg border border-slate-700 p-4">
+          <legend className="px-2 font-semibold">Ubicacion</legend>
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={fillGps}
+              className={`min-h-12 w-full rounded border p-3 transition-colors ${
+                locationMode === "gps"
+                  ? "border-green-500 bg-green-500/10 text-green-400"
+                  : "border-slate-500"
+              }`}
+            >
+              {locationMode === "gps" ? "GPS capturado" : "Usar ubicacion GPS"}
+            </button>
+            <div className="relative">
+              <div className="absolute inset-x-0 top-0 flex items-center justify-center">
+                <span className="bg-slate-900 px-2 text-xs text-slate-500">o</span>
+              </div>
+              <hr className="border-slate-700" />
+            </div>
+            <p className="text-sm text-slate-400">Usar punto de referencia</p>
+            <ReferenceSearch
+              selected={selectedReference}
+              onSelect={handleReferenceSelect}
+              onClear={handleReferenceClear}
+            />
+          </div>
+
+          <label className="block">
+            <span className="mb-1 block font-semibold">Direccion / referencia (opcional)</span>
+            <span className="mb-1 block text-sm text-slate-400">Indica el punto publico para recibir la ayuda</span>
+            <input
+              className="min-h-12 w-full rounded bg-slate-800 p-3"
+              name="address"
+              value={form.address}
+              onChange={(event) => setForm({ ...form, address: event.target.value })}
+            />
+          </label>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-1 block font-semibold">
+                Municipio
+                {refAutoFilled && <span className="ml-2 text-xs font-normal text-green-400">(auto)</span>}
+              </span>
+              <select
+                required
+                value={form.municipality}
+                onChange={(event) => {
+                  const mun = event.target.value;
+                  const isOtro = mun === "Otro";
+                  setForm({
+                    ...form,
+                    municipality: mun,
+                    sector: isOtro ? "" : "",
+                    zone: isOtro ? "Otro" : "",
+                  });
+                  if (refAutoFilled) setRefAutoFilled(false);
+                }}
+                className="min-h-12 w-full rounded bg-slate-800 p-3"
+              >
+                <option value="" disabled>Municipio...</option>
+                {ZONE_GROUPS.map((group) => (
+                  <option key={group.municipality} value={group.municipality}>
+                    {group.municipality}
+                  </option>
+                ))}
+                <option value="Otro">Otro</option>
+              </select>
+            </label>
+
+            {form.municipality && form.municipality !== "Otro" && (
+              <label className="block">
+                <span className="mb-1 block font-semibold">
+                  Sector
+                  {refAutoFilled && form.sector && <span className="ml-2 text-xs font-normal text-green-400">(auto)</span>}
+                </span>
+                <select
+                  required
+                  value={form.sector}
+                  onChange={(event) => {
+                    const sec = event.target.value;
+                    setForm({
+                      ...form,
+                      sector: sec,
+                      zone: `${form.municipality} - ${sec}`,
+                    });
+                    if (refAutoFilled) setRefAutoFilled(false);
+                  }}
+                  className="min-h-12 w-full rounded bg-slate-800 p-3"
+                >
+                  <option value="" disabled>Sector...</option>
+                  {ZONE_GROUPS.find((g) => g.municipality === form.municipality)?.sectors.map(
+                    (sector) => (
+                      <option key={sector} value={sector}>
+                        {sector}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
+            )}
+          </div>
+        </fieldset>
+
+        <input type="hidden" name="zone" value={form.zone} />
 
         <label className="hidden" aria-hidden>
           Sitio web
