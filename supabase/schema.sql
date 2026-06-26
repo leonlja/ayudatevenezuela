@@ -23,7 +23,7 @@ create table if not exists reports (
   ip_hash text,
   device_id text,
   volunteer_note text,
-  location_source text not null default 'none' check (location_source in ('gps','ip','reference','none')),
+  location_source text not null default 'none' check (location_source in ('gps','ip','none')),
   hidden boolean not null default false
 );
 

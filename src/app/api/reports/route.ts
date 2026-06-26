@@ -121,20 +121,19 @@ export async function POST(request: NextRequest) {
 
   let lat: number | null = null;
   let lng: number | null = null;
-  let locationSource: "gps" | "ip" | "reference" | "none" = "none";
-  const clientLocationSource = body.location_source;
+  let locationSource: "gps" | "ip" | "none" = "none";
+  const isReference = body.location_source === "reference";
 
   if (latExact !== null && lngExact !== null) {
-    if (clientLocationSource === "reference") {
+    if (isReference) {
       lat = latExact;
       lng = lngExact;
-      locationSource = "reference";
     } else {
       const fuzzy = fuzzCoord(latExact, lngExact);
       lat = fuzzy.lat;
       lng = fuzzy.lng;
-      locationSource = "gps";
     }
+    locationSource = "gps";
   } else {
     const clientIp = getClientIp(request);
     const ipGeo = await geolocateIp(clientIp);
