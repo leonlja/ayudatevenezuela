@@ -5,17 +5,32 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const MiniMapPreview = dynamic(() => import("./MiniMapPreview"), { ssr: false });
 
+type NominatimAddress = Record<string, string | undefined> & {
+  road?: string;
+  suburb?: string;
+  city_district?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  state?: string;
+  county?: string;
+};
+
 type NominatimResult = {
   place_id: number;
   display_name: string;
   lat: string;
   lon: string;
+  type?: string;
+  address?: NominatimAddress;
 };
 
 export type SelectedReference = {
   label: string;
   lat: number;
   lng: number;
+  municipality?: string;
+  sector?: string;
 };
 
 type Props = {
@@ -25,6 +40,41 @@ type Props = {
 };
 
 const DEBOUNCE_MS = 400;
+
+function buildConciseLabel(result: NominatimResult): string {
+  const addr = result.address;
+  if (!addr) return result.display_name;
+
+  const parts: string[] = [];
+  const seen = new Set<string>();
+  const add = (v: string | undefined) => {
+    if (v && !seen.has(v)) {
+      seen.add(v);
+      parts.push(v);
+    }
+  };
+
+  const displayFirst = result.display_name.split(",")[0]?.trim();
+  add(displayFirst);
+  add(addr.road);
+  add(addr.suburb);
+
+  const mun = addr.city_district || addr.county;
+  add(mun);
+
+  const city = addr.city || addr.town || addr.village;
+  if (city !== mun) add(city);
+
+  return parts.length > 0 ? parts.join(", ") : result.display_name;
+}
+
+function extractLocationInfo(addr?: NominatimAddress) {
+  if (!addr) return {};
+  return {
+    municipality: addr.city_district || addr.county || addr.city || addr.town,
+    sector: addr.suburb,
+  };
+}
 
 export default function ReferenceSearch({ onSelect, onClear, selected }: Props) {
   const [query, setQuery] = useState("");
@@ -87,10 +137,13 @@ export default function ReferenceSearch({ onSelect, onClear, selected }: Props) 
   }, []);
 
   const handleSelect = (result: NominatimResult) => {
+    const loc = extractLocationInfo(result.address);
     const ref: SelectedReference = {
-      label: result.display_name,
+      label: buildConciseLabel(result),
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
+      municipality: loc.municipality,
+      sector: loc.sector,
     };
     onSelect(ref);
     setQuery("");
@@ -147,7 +200,7 @@ export default function ReferenceSearch({ onSelect, onClear, selected }: Props) 
                 className="w-full px-3 py-2.5 text-left text-sm text-slate-200 transition-colors hover:bg-slate-800"
                 onClick={() => handleSelect(r)}
               >
-                {r.display_name}
+                {buildConciseLabel(r)}
               </button>
             </li>
           ))}
