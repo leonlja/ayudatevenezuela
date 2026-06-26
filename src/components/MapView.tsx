@@ -123,7 +123,7 @@ export default function MapView({ reports }: Props) {
                     {report.contact_name && <p style={{ margin: "0 0 2px" }}><strong>Contacto:</strong> {report.contact_name}</p>}
                     <p style={{ margin: "4px 0 0", fontSize: 11, color: "#64748b" }}>
                       {new Date(report.created_at).toLocaleString("es-VE")}
-                      {locSource === "ip" ? " (ubicacion por IP ~5km)" : locSource === "none" ? " (solo zona)" : ""}
+                      {locSource === "ip" ? " (ubicacion por IP ~5km)" : locSource === "reference" ? " (punto de referencia)" : locSource === "none" ? " (solo zona)" : ""}
                     </p>
                   </div>
                 </Popup>

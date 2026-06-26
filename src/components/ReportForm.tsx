@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { CATEGORIES, URGENCIES, ZONE_GROUPS } from "@/lib/categories";
 import { flushQueue, queueReport } from "@/lib/offline-queue";
+import ReferenceSearch from "./ReferenceSearch";
+import type { SelectedReference } from "./ReferenceSearch";
 
 const MAX_CATEGORIES = 3;
 
@@ -49,6 +51,7 @@ function getDeviceId() {
   return next;
 }
 
+type LocationMode = "none" | "gps" | "reference";
 type SubmissionResult = { id: string; time: string } | null;
 
 export default function ReportForm() {
@@ -56,6 +59,8 @@ export default function ReportForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "queued" | "done" | "error">("idle");
   const [error, setError] = useState("");
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult>(null);
+  const [locationMode, setLocationMode] = useState<LocationMode>("none");
+  const [selectedReference, setSelectedReference] = useState<SelectedReference | null>(null);
 
   const toggleCategory = (value: string) => {
     setForm((prev) => {
@@ -114,6 +119,7 @@ export default function ReportForm() {
         ...form,
         category: form.categories.join(","),
         device_id: deviceId,
+        location_source: locationMode,
       };
       if (!navigator.onLine) {
         await queueReport(payload);
@@ -139,6 +145,8 @@ export default function ReportForm() {
       setSubmissionResult({ id: data.id, time: new Date().toLocaleTimeString("es-VE") });
       setStatus("done");
       setForm(initialState);
+      setLocationMode("none");
+      setSelectedReference(null);
     } catch (submissionError) {
       setStatus("error");
       setError(submissionError instanceof Error ? submissionError.message : "Error inesperado");
@@ -147,14 +155,37 @@ export default function ReportForm() {
 
   const fillGps = () => {
     navigator.geolocation.getCurrentPosition(
-      (position) =>
+      (position) => {
         setForm((current) => ({
           ...current,
           lat_exact: String(position.coords.latitude),
           lng_exact: String(position.coords.longitude),
-        })),
+        }));
+        setLocationMode("gps");
+        setSelectedReference(null);
+      },
       () => setError("No se pudo leer GPS."),
     );
+  };
+
+  const handleReferenceSelect = (ref: SelectedReference) => {
+    setSelectedReference(ref);
+    setForm((current) => ({
+      ...current,
+      lat_exact: String(ref.lat),
+      lng_exact: String(ref.lng),
+    }));
+    setLocationMode("reference");
+  };
+
+  const handleReferenceClear = () => {
+    setSelectedReference(null);
+    setForm((current) => ({
+      ...current,
+      lat_exact: "",
+      lng_exact: "",
+    }));
+    setLocationMode("none");
   };
 
   const closeModal = () => {
@@ -353,9 +384,31 @@ export default function ReportForm() {
         <input type="hidden" name="lat_exact" value={form.lat_exact} />
         <input type="hidden" name="lng_exact" value={form.lng_exact} />
 
-        <button type="button" onClick={fillGps} className="min-h-12 w-full rounded border border-slate-500 p-3">
-          Usar ubicacion GPS
-        </button>
+        <div className="space-y-2">
+          <p className="font-semibold">Ubicacion (opcional)</p>
+          <button
+            type="button"
+            onClick={fillGps}
+            className={`min-h-12 w-full rounded border p-3 transition-colors ${
+              locationMode === "gps"
+                ? "border-green-500 bg-green-500/10 text-green-400"
+                : "border-slate-500"
+            }`}
+          >
+            {locationMode === "gps" ? "GPS capturado" : "Usar ubicacion GPS"}
+          </button>
+          <div className="relative">
+            <div className="absolute inset-x-0 top-0 flex items-center justify-center">
+              <span className="bg-slate-900 px-2 text-xs text-slate-500">o</span>
+            </div>
+            <hr className="border-slate-700" />
+          </div>
+          <ReferenceSearch
+            selected={selectedReference}
+            onSelect={handleReferenceSelect}
+            onClear={handleReferenceClear}
+          />
+        </div>
 
         <button
           type="submit"
